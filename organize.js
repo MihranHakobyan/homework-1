@@ -1,32 +1,26 @@
-import fs from "fs";
-const dir = './result';
-export default function organizeFiles() {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-        fs.readdir('./test', (err, files) => {
-            if (err) {
-                console.error('Error reading directory:', err);
-                return;
-            } else {
-                files.forEach(file => {
-                    const fileExtension = file.split('.').pop();
-                    const extensionDir = `${dir}/${fileExtension}`;
-                    if (!fs.existsSync(extensionDir)) {
-                        fs.mkdirSync(extensionDir);
-                    }
-                    fs.rename(`./test/${file}`, `${extensionDir}/${file}`, (err) => {
-                        if (err) {
-                            console.error('Error moving file:', err);
-                            return;
-                        }
+import fs from 'fs/promises';
+import path from 'path';
 
-                        console.log(`File moved: ${file} to ${extensionDir}`);
-                    });
-                })
-            }
+const sourceDir = './test';
+const resultDir = './result';
+
+export default async function organizeFiles() {
+    try {
+        await fs.mkdir(resultDir, { recursive: true });
+        const files = await fs.readdir(sourceDir);
+        const moveOperations = files.map(async (file) => {
+            const fileExtension = path.extname(file).slice(1); 
+            const targetDir = path.join(resultDir, fileExtension);
+            await fs.mkdir(targetDir, { recursive: true });
+            const oldPath = path.join(sourceDir, file);
+            const newPath = path.join(targetDir, file);
+            await fs.rename(oldPath, newPath);
+            console.log(`File moved: ${file} → ${targetDir}`);
         });
-    } else {
-        console.log('files already organized.');
-    }
+        await Promise.all(moveOperations);
+        console.log('All files organized successfully.');
 
+    } catch (err) {
+        console.error('Error organizing files:', err);
+    }
 }

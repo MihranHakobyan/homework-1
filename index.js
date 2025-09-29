@@ -1,7 +1,14 @@
 import create from "./create.js";
-import organize from "./organize.js";
-if (process.argv[2] === "create") {
-    create();
-} else if (process.argv[2] === "organize") {
-    organize();
-}
+import   organize from "./organize.js";
+
+const command = process.argv[2];
+
+(async () => {
+    if (command === "create") {
+        await create();
+    } else if (command === "organize") {
+        await organize();
+    } else {
+        console.log("Unknown command. Use 'create' or 'organize'.");
+    }
+})();
